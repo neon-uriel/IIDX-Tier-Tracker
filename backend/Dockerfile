@@ -7,8 +7,8 @@ WORKDIR /usr/src/app
 # Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
 
-# Install any needed packages
-RUN npm install
+# Install any needed packages, including dev dependencies for nodemon
+RUN npm install --include=dev
 
 # Copy the rest of the application's source code
 COPY . .
@@ -16,5 +16,5 @@ COPY . .
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
 
-# Define the command to run the app
-CMD [ "node", "index.js" ]
+# Define the command to run the app in development
+CMD [ "npm", "run", "dev" ]

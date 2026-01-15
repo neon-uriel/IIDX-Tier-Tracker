@@ -11,7 +11,10 @@ const authRoutes = require('./routes/auth');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // Allow the frontend origin
+  credentials: true, // Allow cookies to be sent
+}));
 app.use(express.json());
 
 // Session middleware
