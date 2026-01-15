@@ -1,0 +1,18 @@
+# A custom command to commit staged changes and push.
+description = "ステージング済みの変更をコミットし、リモートリポジトリへプッシュします。"
+# 引数としてコミットメッセージを受け取ります。
+argument_hint = "<commit_message:$1>"
+
+# The prompt executes git commit and git push.
+# It assumes changes have already been staged via `git add`.
+prompt = """
+ステージング済みの変更をコミットし、リモートリポジトリへプッシュしています...
+
+実行コマンド:
+git commit -m "{{$1}}" && git push
+
+{{ shell `git commit -m "` + $1 + `" && git push` }}
+"""
+
+# Message to show after the commands have been run.
+post_run_message = "コミットとプッシュが完了しました。"

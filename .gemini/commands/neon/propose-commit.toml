@@ -1,0 +1,16 @@
+# A custom command to stage all changes and propose a commit message.
+description = "すべての変更をステージング(git add .)し、差分を分析して日本語のコミットメッセージを提案します。"
+
+# The prompt executes git add first, then gets the diff.
+prompt = """
+You are an expert at writing git commit messages.
+I have staged all current changes using `git add .`.
+Analyze the following git diff and propose a concise, conventional commit message in Japanese.
+The message should have a subject line and an optional body explaining the "why" behind the changes.
+
+---
+{{ shell "git add . && git diff --cached" }}
+---
+"""
+
+post_run_message = "すべての変更をステージングし、差分に基づいたコミットメッセージを提案します。"
