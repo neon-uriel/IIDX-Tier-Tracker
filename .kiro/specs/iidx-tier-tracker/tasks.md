@@ -38,7 +38,7 @@
   - セッション管理のために`express-session`を設定する。
   - `/api/current_user`と`/api/logout`エンドポイントを実装する。
   - _Requirements: 1.1, 1.2, 1.3, 1.4_
-- [ ] 3.2 楽曲・クリアランプ管理(TierTrackerService)のAPIを実装する
+- [x] 3.2 楽曲・クリアランプ管理(TierTrackerService)のAPIを実装する
   - 楽曲リストを取得する`/api/songs`エンドポイントを実装する。
   - ログインユーザーのランプ情報を取得する`/api/lamps`エンドポイントを実装する。
   - ランプ情報を更新する`/api/lamps` (PUT)エンドポイントを実装する。更新時に`lamp_history`にも記録する。
@@ -74,7 +74,7 @@
   - _Requirements: 5.1, 5.2_
 
 ## 5. データインポート機能の実装
-- [ ] 5.1 Textageスクレイピングスクリプト(DataImportService)を実装する
+- [x] 5.1 Textageスクレイピングスクリプト(DataImportService)を実装する
   - `axios`で`textage.cc`のHTMLを取得する。
   - `cheerio`でHTMLをパースし、楽曲データを抽出するロジックを実装する。
   - 抽出したデータを`songs`テーブルに保存するロジックを実装する（重複チェックを含む）。

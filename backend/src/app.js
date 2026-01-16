@@ -8,6 +8,8 @@ require('dotenv').config();
 require('./config/passport');
 
 const authRoutes = require('./routes/auth');
+const songRoutes = require('./routes/songRoutes'); // Import songRoutes
+const userLampRoutes = require('./routes/userLampRoutes'); // Import userLampRoutes
 
 const app = express();
 
@@ -35,5 +37,7 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/auth', authRoutes);
 app.use('/api', authRoutes); // for /api/current_user
+app.use('/api', songRoutes); // Use songRoutes for /api/songs
+app.use('/api', userLampRoutes); // Use userLampRoutes for /api/lamps
 
 module.exports = app;
