@@ -64,16 +64,16 @@
   - `LampSelector`コンポーネントを各楽曲に配置する。
   - 楽曲名でのフィルタリング機能を実装する。
   - _Requirements: 2.1, 2.2, 2.3, 2.4_
-- [ ] 4.4 ランプ更新機能(`LampSelector`)を実装する
+- [x] 4.4 ランプ更新機能(`LampSelector`)を実装する
   - ランプアイコンをクリックすると、ランプ状態の選択肢（ドロップダウンなど）を表示する。
   - 新しいランプ状態が選択されたら、バックエンドの更新APIを呼び出し、UIに即時反映させる。
   - _Requirements: 3.1, 3.2_
-- [ ] 4.5 統計ページ(`StatsDashboard`, `ContributionCalendar`)を実装する
+- [x] 4.5 統計ページ(`StatsDashboard`, `ContributionCalendar`)を実装する
   - バックエンドからランプ更新履歴を取得し、`ContributionCalendar`コンポーネントで可視化する。
   - レベルごとのクリア状況サマリーをグラフで表示する。
   - _Requirements: 5.1, 5.2_
-- [ ] 4.6 DP/SP切り替え機能を追加する
-  - SP (Single Play) と DP (Double Play) の表示を切り替えるUI要素（ボタンやセレクトボックスなど）を実装する。
+- [x] 4.6 DP/SP切り替え機能を追加する
+  - SP (Single Play) と DP (Double Play) の表示を切り替えるUI要素（ボタンやセレクト ボックスなど）を実装する。
   - 選択されたプレイモードに応じて、バックエンドから適切な楽曲リスト（SPまたはDPの譜面）を取得し表示を更新する。
   - _Requirements: 2.1, 2.2_
 
@@ -84,7 +84,7 @@
   - 抽出したデータを`songs`テーブルに保存するロジックを実装する（重複チェックを含む）。
   - `npm run scrape`のようなコマンドで実行できるように`package.json`にスクリプトを追加する。
   - _Requirements: 2.0_
-- [ ] 5.2 TextageスクレイピングスクリプトにShift-JISからUTF-8への変換機能を追加する
+- [x] 5.2 TextageスクレイピングスクリプトにShift-JISからUTF-8への変換機能を追加する
   - Textageから取得した楽曲データがShift-JISエンコーディングである可能性を考慮し、データベースに保存する前にUTF-8に適切に変換する処理を実装する。
   - これにより、文字化けを防ぎ、多言語対応を強化する。
   - _Requirements: 2.0, 2.1_

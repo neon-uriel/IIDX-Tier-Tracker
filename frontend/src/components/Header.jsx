@@ -15,7 +15,7 @@ export default function Header() {
     if (user) {
       return (
         <>
-          <span>Welcome, {user.display_name}</span> | <a href={`${API_URL}/auth/logout`}>Logout</a>
+          <span>Welcome, {user.display_name}</span> | <Link to="/stats">Stats</Link> | <a href={`${API_URL}/auth/logout`}>Logout</a>
         </>
       );
     } else {

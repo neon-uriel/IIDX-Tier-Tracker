@@ -1,6 +1,7 @@
 const axios = require('axios');
 const vm = require('vm'); // Import the vm module
 const db = require('../db');
+const iconv = require('iconv-lite'); // Import iconv-lite
 
 // Maps for difficulty abbreviations used in `captbl` from scrlist.js
 // and their corresponding level indices in the `actbl` arrays (based on get_level(tag, type, 1))
@@ -20,10 +21,14 @@ async function scrapeTextage(targetLevel) {
   const titletblUrl = 'https://textage.cc/score/titletbl.js';
   const actblUrl = 'https://textage.cc/score/actbl.js';
 
+  // Fetch data as arraybuffer and convert from Shift-JIS to UTF-8
   const [titletblResponse, actblResponse] = await Promise.all([
-    axios.get(titletblUrl),
-    axios.get(actblUrl),
+    axios.get(titletblUrl, { responseType: 'arraybuffer' }),
+    axios.get(actblUrl, { responseType: 'arraybuffer' }),
   ]);
+
+  const titletblContent = iconv.decode(Buffer.from(titletblResponse.data), 'Shift_JIS');
+  const actblContent = iconv.decode(Buffer.from(actblResponse.data), 'Shift_JIS');
 
   // Create a VM context to evaluate the JavaScript files
   const sandbox = {
@@ -37,15 +42,15 @@ async function scrapeTextage(targetLevel) {
     TITLEINDEX: 5,
     SUBTITLEINDEX: 6,
     SS: 35, // This is defined in titletbl.js
-    A: 10, B: 11, C: 12, D: 13, E: 14, F: 15 // Defined in actbl.js
+    A: 10, B: 11, C: 12, D: 13, E: 14, F: 15 // Defined in actbl.js (A-F are hex values for levels)
   };
   vm.createContext(sandbox); // Contextify the sandbox.
 
   // Execute titletbl.js content
-  vm.runInContext(titletblResponse.data, sandbox, { filename: 'titletbl.js' });
+  vm.runInContext(titletblContent, sandbox, { filename: 'titletbl.js' });
 
   // Execute actbl.js content
-  vm.runInContext(actblResponse.data, sandbox, { filename: 'actbl.js' });
+  vm.runInContext(actblContent, sandbox, { filename: 'actbl.js' });
 
   const titletbl = sandbox.titletbl;
   const actbl = sandbox.actbl;
@@ -138,4 +143,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { scrapeTextage }; // parseJsObject is no longer exported
+module.exports = { scrapeTextage };

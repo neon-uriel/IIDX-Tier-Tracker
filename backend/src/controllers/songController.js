@@ -2,7 +2,7 @@ const db = require('../db');
 
 const getSongs = async (req, res) => {
   try {
-    const { level, songName } = req.query;
+    const { level, songName, playMode } = req.query; // Added playMode
     let query = 'SELECT * FROM songs';
     let params = [];
     const conditions = [];
@@ -14,6 +14,14 @@ const getSongs = async (req, res) => {
     if (songName) {
       conditions.push(`title ILIKE $${params.length + 1}`); // ILIKE for case-insensitive search
       params.push(`%${songName}%`);
+    }
+    // Add condition for playMode
+    if (playMode) {
+      if (playMode === 'SP') {
+        conditions.push(`difficulty LIKE 'SP%'`);
+      } else if (playMode === 'DP') {
+        conditions.push(`difficulty LIKE 'DP%'`);
+      }
     }
 
     if (conditions.length > 0) {
