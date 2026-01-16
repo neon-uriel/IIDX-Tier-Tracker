@@ -3,7 +3,7 @@ import axios from 'axios';
 import LampSelector from '../components/LampSelector'; // Import LampSelector
 
 export default function DashboardPage() {
-  const [selectedLevel, setSelectedLevel] = useState(12); // Default to level 12
+  const [selectedLevel, setSelectedLevel] = useState(10); // Default to level 10 for debugging
   const [songNameFilter, setSongNameFilter] = useState(''); // New state for song name filter
   const [songs, setSongs] = useState([]);
   const [userLamps, setUserLamps] = useState({}); // Store user lamps keyed by songId
@@ -17,11 +17,16 @@ export default function DashboardPage() {
       setLoadingSongs(true);
       setError(null);
       try {
-        const response = await axios.get(`/api/songs?level=${selectedLevel}&songName=${songNameFilter}`);
-        setSongs(response.data);
+        const apiUrl = `/api/songs?level=${selectedLevel}&songName=${songNameFilter}`;
+        console.log('Fetching songs from:', apiUrl); // Debug log
+        const response = await axios.get(apiUrl);
+        console.log('API response for songs:', response.data); // Debug log
+        // Ensure response.data is an array before setting state
+        setSongs(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error('Error fetching songs:', err);
         setError('Failed to fetch songs. Please try again.');
+        setSongs([]); // Ensure songs is an empty array on error
       } finally {
         setLoadingSongs(false);
       }
@@ -36,14 +41,22 @@ export default function DashboardPage() {
       setLoadingLamps(true);
       try {
         const response = await axios.get('/api/lamps');
-        const lampsMap = response.data.reduce((acc, lamp) => {
-          acc[lamp.songId] = lamp.lamp;
-          return acc;
-        }, {});
-        setUserLamps(lampsMap);
+        console.log('API response for user lamps:', response.data); // Debug log
+        // Ensure response.data is an array before processing
+        if (Array.isArray(response.data)) {
+          const lampsMap = response.data.reduce((acc, lamp) => {
+            acc[lamp.songId] = lamp.lamp;
+            return acc;
+          }, {});
+          setUserLamps(lampsMap);
+        } else {
+          console.warn('API returned non-array for user lamps:', response.data);
+          setUserLamps({});
+        }
       } catch (err) {
         console.error('Error fetching user lamps:', err);
         // Do not set global error, as songs might still load
+        setUserLamps({});
       } finally {
         setLoadingLamps(false);
       }
@@ -98,7 +111,7 @@ export default function DashboardPage() {
       {isLoading && <p>Loading data...</p>}
       {error && <p className="error-message">{error}</p>}
 
-      {!isLoading && !error && songs.length > 0 && (
+      {!isLoading && !error && Array.isArray(songs) && songs.length > 0 && ( // Added Array.isArray(songs)
         <div className="songs-table">
           <h2>Songs (Level ☆{selectedLevel})</h2>
           <table>
@@ -134,7 +147,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {!isLoading && !error && songs.length === 0 && (
+      {!isLoading && !error && (!Array.isArray(songs) || songs.length === 0) && ( // Adjusted condition
         <p>No songs found for Level ☆{selectedLevel}.</p>
       )}
     </div>

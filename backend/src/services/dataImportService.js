@@ -56,7 +56,8 @@ async function scrapeTextage(targetLevel) {
   const TITLEINDEX = sandbox.TITLEINDEX;
   const SUBTITLEINDEX = sandbox.SUBTITLEINDEX;
 
-  const songsToInsert = [];
+  // Use a Map to store unique songs based on title and difficulty
+  const uniqueSongsToInsert = new Map();
 
   for (const songTag in titletbl) {
     if (titletbl.hasOwnProperty(songTag)) {
@@ -64,7 +65,6 @@ async function scrapeTextage(targetLevel) {
       const chartData = actbl[songTag];
 
       if (!chartData) {
-        // console.warn(`No chart data found for song tag: ${songTag}`);
         continue;
       }
 
@@ -73,34 +73,39 @@ async function scrapeTextage(targetLevel) {
       const artist = songData[ARTISTINDEX];
       const title = songData[TITLEINDEX];
       const subtitle = songData[SUBTITLEINDEX] || '';
+      const fullTitle = title + (subtitle ? ` ${subtitle}` : '');
+
 
       for (const difficultyName in difficultyMap) {
         if (difficultyMap.hasOwnProperty(difficultyName)) {
           const levelIndex = difficultyMap[difficultyName];
-          // Use `chartData[levelIndex]` directly as `vm` context will evaluate A-F to numbers
           let level = chartData[levelIndex];
 
-          if (typeof level !== 'number' || isNaN(level) || level === 0) { // If level is 0 or invalid, skip this chart
+          if (typeof level !== 'number' || isNaN(level) || level === 0) {
             continue;
           }
 
-          // Filter by the targetLevel provided
           if (level !== targetLevel) {
             continue;
           }
 
-          songsToInsert.push({
-            title: title + (subtitle ? ` ${subtitle}` : ''),
-            genre,
-            artist,
-            version,
-            level,
-            difficulty: difficultyName, // e.g., SPN, SPH, SPA, etc.
-          });
+          const songKey = `${fullTitle}-${difficultyName}`;
+          if (!uniqueSongsToInsert.has(songKey)) {
+            uniqueSongsToInsert.set(songKey, {
+              title: fullTitle,
+              genre,
+              artist,
+              version,
+              level,
+              difficulty: difficultyName,
+            });
+          }
         }
       }
     }
   }
+
+  const songsToInsert = Array.from(uniqueSongsToInsert.values());
 
   if (songsToInsert.length > 0) {
     const existingSongsResult = await db.query('SELECT title, difficulty FROM songs');
