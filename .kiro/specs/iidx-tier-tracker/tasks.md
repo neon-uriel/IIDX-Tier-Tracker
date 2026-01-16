@@ -43,7 +43,7 @@
   - ログインユーザーのランプ情報を取得する`/api/lamps`エンドポイントを実装する。
   - ランプ情報を更新する`/api/lamps` (PUT)エンドポイントを実装する。更新時に`lamp_history`にも記録する。
   - _Requirements: 2.1, 2.2, 2.3, 3.1, 3.2, 3.3_
-- [ ] 3.3 統計機能(TierTrackerService)のAPIを実装する
+- [x] 3.3 統計機能(TierTrackerService)のAPIを実装する
   - ランプの更新履歴を取得する`/api/stats/history`エンドポイントを実装する。
   - レベルごとのクリア状況サマリーを取得するAPIを実装する。
   - _Requirements: 5.1, 5.2_

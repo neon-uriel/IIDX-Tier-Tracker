@@ -114,4 +114,58 @@ describe('Backend Integration Test', () => {
       [1, newLamp] // Assuming user_lamp_id is 1 from the update return
     );
   });
+
+  it('GET /api/stats/history should return a list of lamp history entries for the logged-in user', async () => {
+    const mockLampHistory = [
+      { id: 1, userLampId: 1, lamp: 'NO PLAY', createdAt: '2026-01-01T00:00:00Z' },
+      { id: 2, userLampId: 1, lamp: 'EASY CLEAR', createdAt: '2026-01-02T00:00:00Z' },
+    ];
+    db.query.mockResolvedValueOnce({ rows: mockLampHistory });
+
+    const response = await request(app).get('/api/stats/history');
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toEqual(mockLampHistory);
+    // Assuming we need to join user_lamps and lamp_history
+    expect(db.query).toHaveBeenCalledWith(
+      'SELECT lh.* FROM lamp_history lh JOIN user_lamps ul ON lh.user_lamp_id = ul.id WHERE ul.user_id = $1 ORDER BY lh.created_at DESC',
+      [1]
+    );
+  });
+
+  it('GET /api/stats/summary should return clear status summary per level for the logged-in user', async () => {
+    const mockSummaryData = [
+      { level: 10, lamp: 'EASY CLEAR', count: '5' },
+      { level: 10, lamp: 'HARD CLEAR', count: '3' },
+      { level: 11, lamp: 'CLEAR', count: '10' },
+    ];
+    db.query.mockResolvedValueOnce({ rows: mockSummaryData });
+
+    const expectedSummary = {
+      10: { 'EASY CLEAR': 5, 'HARD CLEAR': 3 },
+      11: { 'CLEAR': 10 },
+    };
+
+    const response = await request(app).get('/api/stats/summary');
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toEqual(expectedSummary);
+    expect(db.query).toHaveBeenCalledWith(
+      `
+      SELECT
+        s.level,
+        ul.lamp,
+        COUNT(ul.lamp) AS count
+      FROM
+        user_lamps ul
+      JOIN
+        songs s ON ul.song_id = s.id
+      WHERE
+        ul.user_id = $1
+      GROUP BY
+        s.level, ul.lamp
+      ORDER BY
+        s.level, ul.lamp;
+      `,
+      [1]
+    );
+  });
 });
