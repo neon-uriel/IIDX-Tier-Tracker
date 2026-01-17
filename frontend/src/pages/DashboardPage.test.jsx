@@ -63,7 +63,7 @@ describe('DashboardPage', () => {
     expect(screen.getByLabelText('Filter by Song Name:')).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText('Songs (Level ☆12)')).toBeInTheDocument();
+      expect(screen.getByText('Songs (Level ☆12, SP)')).toBeInTheDocument();
     });
     expect(screen.getByText('Song A')).toBeInTheDocument();
   });
@@ -133,18 +133,17 @@ describe('DashboardPage', () => {
     render(<DashboardPage />);
 
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalledWith('/api/songs?level=12&songName=');
+      expect(axios.get).toHaveBeenCalledWith('/api/songs?level=12&playMode=SP&songName=');
     });
 
     const levelSelector = screen.getByLabelText('Select Level:');
     await user.selectOptions(levelSelector, '10');
 
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalledWith('/api/songs?level=10&songName=');
+      expect(axios.get).toHaveBeenCalledWith('/api/songs?level=10&playMode=SP&songName=');
     });
 
-    expect(screen.getByText('Songs (Level ☆10)')).toBeInTheDocument();
-    expect(screen.getByText('Song C')).toBeInTheDocument();
+          expect(screen.getByText('Songs (Level ☆10, SP)')).toBeInTheDocument();    expect(screen.getByText('Song C')).toBeInTheDocument();
     expect(screen.queryByText('Song A')).not.toBeInTheDocument(); // Old songs should not be there
   });
 
@@ -153,7 +152,7 @@ describe('DashboardPage', () => {
     render(<DashboardPage />);
 
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalledWith('/api/songs?level=12&songName=');
+      expect(axios.get).toHaveBeenCalledWith('/api/songs?level=12&playMode=SP&songName=');
     });
 
     const songNameFilterInput = screen.getByLabelText('Filter by Song Name:');
@@ -161,7 +160,7 @@ describe('DashboardPage', () => {
 
     await waitFor(() => {
       // Expect axios.get to be called with the correct songName filter
-      expect(axios.get).toHaveBeenCalledWith('/api/songs?level=12&songName=Filtered');
+      expect(axios.get).toHaveBeenCalledWith('/api/songs?level=12&playMode=SP&songName=Filtered');
     });
 
     // Expect only the filtered song to be displayed
@@ -182,7 +181,7 @@ describe('DashboardPage', () => {
     render(<DashboardPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('No songs found for Level ☆12.')).toBeInTheDocument();
+      expect(screen.getByText('No songs found for Level ☆12, SP.')).toBeInTheDocument();
     });
   });
 });

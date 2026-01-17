@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import axios from 'axios';
 
-const LampSelector = ({ songId, currentLamp, onLampUpdate }) => {
+const LampSelector = memo(({ songId, currentLamp, onLampUpdate }) => {
   const [selectedLamp, setSelectedLamp] = useState(currentLamp);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState(null);
@@ -39,10 +39,12 @@ const LampSelector = ({ songId, currentLamp, onLampUpdate }) => {
           </option>
         ))}
       </select>
-      {isUpdating && <span className="updating-status">Updating...</span>}
+      <span className="updating-status" style={{ visibility: isUpdating ? 'visible' : 'hidden', minWidth: '80px' }}>
+        Updating...
+      </span>
       {error && <span className="error-message">{error}</span>} {/* Added conditional rendering for error */}
     </div>
   );
-};
+});
 
 export default LampSelector;

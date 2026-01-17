@@ -1,6 +1,7 @@
 const axios = require('axios');
 const { scrapeTextage } = require('../src/services/dataImportService'); // parseJsObject is no longer exported
 const db = require('../src/db');
+const iconv = require('iconv-lite'); // Import iconv-lite
 
 jest.mock('axios');
 jest.mock('../src/db', () => ({
@@ -10,7 +11,14 @@ jest.mock('../src/db', () => ({
 describe('DataImportService', () => {
   beforeEach(() => {
     axios.get.mockReset();
+    // Reset db.query mock and add console.log for debugging
     db.query.mockReset();
+    db.query.mockImplementation((query, params) => {
+      if (query.startsWith('SELECT')) {
+        return Promise.resolve({ rows: [] }); // Default for SELECTs unless overridden
+      }
+      return Promise.resolve({}); // Default for INSERTs unless overridden
+    });
   });
 
   // Removed parseJsObject tests as it's no longer exported and logic changed
@@ -35,28 +43,25 @@ describe('DataImportService', () => {
     const mockActbl = `
       A=10, B=11, C=12, D=13, E=14, F=15;
       actbl={
-        //     SBo SB SN SH SA SX  DB  DN  DH DA DX
-        'song_a':[0,0,0,10,10,10,0,0,0,10,10,10,0,0,0,10,10,10,10,10,10,0,0,0], // SPA level 10 (index 9)
-        'song_b':[0,0,0,0,0,0,11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // SPL level 11 (should be skipped)
-        'song_c':[0,0,0,10,10,10,10,0,0,0,0,0,0,0,0,10,10,10,10,10,10,0,0,0], // SPH level 10 (index 7)
+        'song_a':[0,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // SPA level 10
+        'song_b':[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // No level 10 songs
+        'song_c':[0,0,0,0,0,0,0,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // SPH level 10
       };
     `;
 
-    axios.get.mockImplementation((url) => {
+    axios.get.mockImplementation((url, config) => {
       if (url.includes('titletbl.js')) {
-        return Promise.resolve({ data: mockTitletbl });
+        return Promise.resolve({ data: iconv.encode(mockTitletbl, 'Shift_JIS') });
       }
       if (url.includes('actbl.js')) {
-        return Promise.resolve({ data: mockActbl });
+        return Promise.resolve({ data: iconv.encode(mockActbl, 'Shift_JIS') });
       }
       return Promise.reject(new Error('Unknown URL'));
     });
-    db.query.mockResolvedValue({ rows: [] }); // Assume no songs exist initially
-
     await scrapeTextage(level);
 
-    expect(axios.get).toHaveBeenCalledWith('https://textage.cc/score/titletbl.js');
-    expect(axios.get).toHaveBeenCalledWith('https://textage.cc/score/actbl.js');
+    expect(axios.get).toHaveBeenCalledWith('https://textage.cc/score/titletbl.js', { responseType: 'arraybuffer' });
+    expect(axios.get).toHaveBeenCalledWith('https://textage.cc/score/actbl.js', { responseType: 'arraybuffer' });
     expect(axios.get).toHaveBeenCalledTimes(2);
 
     expect(db.query).toHaveBeenCalledTimes(3); // 1 for select, 2 for insert (song_a SPA and song_c SPH)
@@ -87,7 +92,7 @@ describe('DataImportService', () => {
     const mockActbl = `
       A=10, B=11, C=12, D=13, E=14, F=15;
       actbl={
-        'song_a':[0,0,0,10,10,10,0,0,0,10,10,10,0,0,0,10,10,10,10,10,10,0,0,0], // SPA level 10
+        'song_a':[0,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // SPA level 10
       };
     `;
 

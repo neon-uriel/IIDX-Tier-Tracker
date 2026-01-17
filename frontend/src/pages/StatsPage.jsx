@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import StatsDashboard from '../components/StatsDashboard';
-import ContributionCalendar from '../components/ContributionCalendar'; // Uncommented
+
 
 export default function StatsPage() {
   const [summaryData, setSummaryData] = useState({});
@@ -41,7 +41,7 @@ export default function StatsPage() {
     <div className="stats-page">
       <h1>Statistics Dashboard</h1>
       <StatsDashboard summary={summaryData} />
-      <ContributionCalendar history={historyData} /> {/* Uncommented */}
+
     </div>
   );
 }

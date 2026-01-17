@@ -42,4 +42,11 @@ describe('Auth Service', () => {
         );
         expect(user).toEqual(newUser);
     });
+
+    it('should throw an error if db.query fails', async () => {
+        const error = new Error('Database error');
+        db.query.mockRejectedValue(error); // Mock db.query to throw an error
+
+        await expect(findOrCreateUser(profile)).rejects.toThrow('Database error');
+    });
 });

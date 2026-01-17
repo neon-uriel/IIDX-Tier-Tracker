@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import axios from 'axios';
-import LampSelector from '../components/LampSelector'; // Import LampSelector
+import LampSelector from '../components/LampSelector';
+import SongRow from '../components/SongRow'; // Import SongRow
+import { AuthContext } from '../context/AuthContext'; // Import LampSelector
 
 export default function DashboardPage() {
   const [selectedLevel, setSelectedLevel] = useState(12); // Default to level 12
@@ -11,6 +13,7 @@ export default function DashboardPage() {
   const [loadingSongs, setLoadingSongs] = useState(false);
   const [loadingLamps, setLoadingLamps] = useState(false);
   const [error, setError] = useState(null);
+  const { user, loading: authLoading } = useContext(AuthContext);
 
   // Fetch songs based on selected level, play mode, and song name filter
   useEffect(() => {
@@ -36,7 +39,10 @@ export default function DashboardPage() {
 
   // Fetch user lamps
   useEffect(() => {
+    console.log('User Lamps useEffect triggered. user:', user, 'authLoading:', authLoading);
+
     const fetchUserLamps = async () => {
+      console.log('Calling fetchUserLamps...');
       setLoadingLamps(true);
       try {
         const response = await axios.get('/api/lamps');
@@ -60,8 +66,14 @@ export default function DashboardPage() {
       }
     };
 
-    fetchUserLamps();
-  }, []); // Fetch only once on component mount
+    if (user && !authLoading) { // Only fetch if user is authenticated and auth is not loading
+      console.log('Auth check passed: User is authenticated, fetching lamps.');
+      fetchUserLamps();
+    } else if (!user && !authLoading) { // If not authenticated and auth loading is done, clear lamps
+      console.log('Auth check failed: User is not authenticated, clearing lamps.');
+      setUserLamps({});
+    }
+  }, [user, authLoading]); // Re-fetch when user or authLoading changes
 
   const handleLevelChange = (event) => {
     setSelectedLevel(parseInt(event.target.value));
@@ -75,14 +87,14 @@ export default function DashboardPage() {
     setSongNameFilter(event.target.value);
   };
 
-  const handleLampUpdate = (songId, newLamp) => {
+  const handleLampUpdate = useCallback((songId, newLamp) => {
     setUserLamps(prevLamps => ({
       ...prevLamps,
       [songId]: newLamp,
     }));
-  };
+  }, [setUserLamps]);
 
-  const isLoading = loadingSongs || loadingLamps;
+  const isLoading = loadingSongs || loadingLamps || authLoading;
 
   return (
     <div className="dashboard-page">
@@ -136,20 +148,12 @@ export default function DashboardPage() {
             </thead>
             <tbody>
               {songs.map((song) => (
-                <tr key={song.id}>
-                  <td>{song.title}</td>
-                  <td>{song.artist}</td>
-                  <td>{song.genre}</td>
-                  <td>{song.difficulty}</td>
-                  <td>{song.level}</td>
-                  <td>
-                    <LampSelector
-                      songId={song.id}
-                      currentLamp={userLamps[song.id] || 'NO PLAY'}
-                      onLampUpdate={handleLampUpdate}
-                    />
-                  </td>
-                </tr>
+                <SongRow
+                  key={song.id}
+                  song={song}
+                  currentLamp={userLamps[song.id] || 'NO PLAY'}
+                  onLampUpdate={handleLampUpdate}
+                />
               ))}
             </tbody>
           </table>
