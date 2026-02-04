@@ -1,13 +1,14 @@
 /// <reference types="vitest" />
+import path from "path"
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import tailwindcss from 'tailwindcss'
-import autoprefixer from 'autoprefixer'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: '0.0.0.0',
+    port: 5173,
     proxy: {
       '/api': {
         target: 'http://localhost:5000', // Your backend server
@@ -21,12 +22,9 @@ export default defineConfig({
       },
     },
   },
-  css: { // Add this block
-    postcss: {
-      plugins: [
-        tailwindcss,
-        autoprefixer,
-      ],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
     },
   },
   test: {

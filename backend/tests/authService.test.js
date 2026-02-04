@@ -1,4 +1,4 @@
-const { findOrCreateUser } = require('../src/services/authService');
+const { findOrCreateUser, isAdmin, getAdminEmails } = require('../src/services/authService');
 const db = require('../src/db');
 
 // Mock the db module
@@ -48,5 +48,106 @@ describe('Auth Service', () => {
         db.query.mockRejectedValue(error); // Mock db.query to throw an error
 
         await expect(findOrCreateUser(profile)).rejects.toThrow('Database error');
+    });
+});
+
+describe('Admin Identification', () => {
+    const originalEnv = process.env;
+
+    beforeEach(() => {
+        jest.resetModules();
+        process.env = { ...originalEnv };
+    });
+
+    afterAll(() => {
+        process.env = originalEnv;
+    });
+
+    describe('getAdminEmails', () => {
+        it('should return empty array when ADMIN_EMAILS is not set', () => {
+            delete process.env.ADMIN_EMAILS;
+            const { getAdminEmails } = require('../src/services/authService');
+            expect(getAdminEmails()).toEqual([]);
+        });
+
+        it('should return empty array when ADMIN_EMAILS is empty string', () => {
+            process.env.ADMIN_EMAILS = '';
+            const { getAdminEmails } = require('../src/services/authService');
+            expect(getAdminEmails()).toEqual([]);
+        });
+
+        it('should parse single email from ADMIN_EMAILS', () => {
+            process.env.ADMIN_EMAILS = 'admin@example.com';
+            const { getAdminEmails } = require('../src/services/authService');
+            expect(getAdminEmails()).toEqual(['admin@example.com']);
+        });
+
+        it('should parse multiple comma-separated emails from ADMIN_EMAILS', () => {
+            process.env.ADMIN_EMAILS = 'admin1@example.com,admin2@example.com,admin3@example.com';
+            const { getAdminEmails } = require('../src/services/authService');
+            expect(getAdminEmails()).toEqual(['admin1@example.com', 'admin2@example.com', 'admin3@example.com']);
+        });
+
+        it('should trim whitespace from emails', () => {
+            process.env.ADMIN_EMAILS = ' admin1@example.com , admin2@example.com ';
+            const { getAdminEmails } = require('../src/services/authService');
+            expect(getAdminEmails()).toEqual(['admin1@example.com', 'admin2@example.com']);
+        });
+
+        it('should filter out empty entries', () => {
+            process.env.ADMIN_EMAILS = 'admin@example.com,,another@example.com,';
+            const { getAdminEmails } = require('../src/services/authService');
+            expect(getAdminEmails()).toEqual(['admin@example.com', 'another@example.com']);
+        });
+    });
+
+    describe('isAdmin', () => {
+        it('should return false when user is null', () => {
+            process.env.ADMIN_EMAILS = 'admin@example.com';
+            const { isAdmin } = require('../src/services/authService');
+            expect(isAdmin(null)).toBe(false);
+        });
+
+        it('should return false when user is undefined', () => {
+            process.env.ADMIN_EMAILS = 'admin@example.com';
+            const { isAdmin } = require('../src/services/authService');
+            expect(isAdmin(undefined)).toBe(false);
+        });
+
+        it('should return false when user has no email', () => {
+            process.env.ADMIN_EMAILS = 'admin@example.com';
+            const { isAdmin } = require('../src/services/authService');
+            expect(isAdmin({ id: 1, display_name: 'Test' })).toBe(false);
+        });
+
+        it('should return false when user email is not in admin list', () => {
+            process.env.ADMIN_EMAILS = 'admin@example.com';
+            const { isAdmin } = require('../src/services/authService');
+            expect(isAdmin({ id: 1, email: 'user@example.com' })).toBe(false);
+        });
+
+        it('should return true when user email is in admin list', () => {
+            process.env.ADMIN_EMAILS = 'admin@example.com';
+            const { isAdmin } = require('../src/services/authService');
+            expect(isAdmin({ id: 1, email: 'admin@example.com' })).toBe(true);
+        });
+
+        it('should return true when user email matches one of multiple admins', () => {
+            process.env.ADMIN_EMAILS = 'admin1@example.com,admin2@example.com';
+            const { isAdmin } = require('../src/services/authService');
+            expect(isAdmin({ id: 1, email: 'admin2@example.com' })).toBe(true);
+        });
+
+        it('should be case-insensitive for email comparison', () => {
+            process.env.ADMIN_EMAILS = 'Admin@Example.com';
+            const { isAdmin } = require('../src/services/authService');
+            expect(isAdmin({ id: 1, email: 'admin@example.com' })).toBe(true);
+        });
+
+        it('should return false when ADMIN_EMAILS is not configured', () => {
+            delete process.env.ADMIN_EMAILS;
+            const { isAdmin } = require('../src/services/authService');
+            expect(isAdmin({ id: 1, email: 'anyone@example.com' })).toBe(false);
+        });
     });
 });

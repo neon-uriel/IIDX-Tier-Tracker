@@ -38,10 +38,11 @@ export default function StatsPage() {
   }
 
   return (
-    <div className="stats-page">
-      <h1>Statistics Dashboard</h1>
-      <StatsDashboard summary={summaryData} />
-
+    <div className="stats-page p-3 sm:p-6 w-full mx-auto flex flex-col h-[calc(100vh-100px)] sm:h-[calc(100vh-120px)]">
+      <h1 className="text-xl sm:text-3xl font-heading font-bold mb-4 sm:mb-6 text-left shrink-0">Statistics Dashboard</h1>
+      <div className="flex-1 w-full min-h-0 overflow-auto">
+        <StatsDashboard summary={summaryData} />
+      </div>
     </div>
   );
 }

@@ -3,7 +3,8 @@ import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
-import StatsPage from './pages/StatsPage'; // Import StatsPage
+import StatsPage from './pages/StatsPage';
+import AdminPage from './pages/AdminPage';
 
 export default function AppRoutes() {
   return (
@@ -12,7 +13,8 @@ export default function AppRoutes() {
         <Route index element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="stats" element={<StatsPage />} /> {/* New Route for StatsPage */}
+        <Route path="stats" element={<StatsPage />} />
+        <Route path="admin" element={<AdminPage />} />
       </Route>
     </Routes>
   );

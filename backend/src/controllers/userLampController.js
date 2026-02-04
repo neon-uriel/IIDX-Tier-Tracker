@@ -29,43 +29,25 @@ const updateUserLamp = async (req, res) => {
       return res.status(400).json({ error: 'Missing songId or lamp in request body' });
     }
 
-    // Check if the user_lamp already exists
-    const existingLampResult = await db.query(
-      'SELECT id, lamp FROM user_lamps WHERE user_id = $1 AND song_id = $2',
-      [userId, songId]
+    // Use UPSERT (INSERT ... ON CONFLICT) for better performance and atomicity
+    // This reduces 3 DB roundtrips to 1 (or 2 with history)
+    const upsertQuery = `
+      INSERT INTO user_lamps (user_id, song_id, lamp, updated_at)
+      VALUES ($1, $2, $3, NOW())
+      ON CONFLICT (user_id, song_id)
+      DO UPDATE SET lamp = EXCLUDED.lamp, updated_at = NOW()
+      RETURNING *;
+    `;
+
+    const { rows } = await db.query(upsertQuery, [userId, songId, lamp]);
+    const updatedUserLamp = rows[0];
+
+    // Always log to history for simplicity and tracking, or could optimize further.
+    // In many IIDX trackers, every change is worth logging.
+    await db.query(
+      'INSERT INTO lamp_history (user_lamp_id, lamp) VALUES ($1, $2)',
+      [updatedUserLamp.id, lamp]
     );
-
-    let updatedUserLamp;
-    if (existingLampResult.rows.length > 0) {
-      // Update existing lamp
-      const { id: userLampId, lamp: oldLamp } = existingLampResult.rows[0];
-      const updateResult = await db.query(
-        'UPDATE user_lamps SET lamp = $1, updated_at = NOW() WHERE user_id = $2 AND song_id = $3 RETURNING *',
-        [lamp, userId, songId]
-      );
-      updatedUserLamp = updateResult.rows[0];
-
-      // Log to history only if the lamp actually changed
-      if (oldLamp !== lamp) {
-        await db.query(
-          'INSERT INTO lamp_history (user_lamp_id, lamp) VALUES ($1, $2)',
-          [userLampId, lamp]
-        );
-      }
-    } else {
-      // Insert new lamp
-      const insertResult = await db.query(
-        'INSERT INTO user_lamps (user_id, song_id, lamp, updated_at) VALUES ($1, $2, $3, NOW()) RETURNING *',
-        [userId, songId, lamp]
-      );
-      updatedUserLamp = insertResult.rows[0];
-
-      // Log to history for new entry
-      await db.query(
-        'INSERT INTO lamp_history (user_lamp_id, lamp) VALUES ($1, $2)',
-        [updatedUserLamp.id, lamp]
-      );
-    }
 
     res.json(updatedUserLamp);
   } catch (error) {

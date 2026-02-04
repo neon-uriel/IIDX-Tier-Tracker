@@ -1,5 +1,33 @@
 const db = require('../db');
 
+/**
+ * Get list of admin email addresses from environment variable
+ * @returns {string[]} Array of admin email addresses (lowercase)
+ */
+function getAdminEmails() {
+  const adminEmails = process.env.ADMIN_EMAILS;
+  if (!adminEmails) {
+    return [];
+  }
+  return adminEmails
+    .split(',')
+    .map(email => email.trim().toLowerCase())
+    .filter(email => email.length > 0);
+}
+
+/**
+ * Check if a user is an administrator
+ * @param {Object} user - User object with email property
+ * @returns {boolean} True if user is an admin
+ */
+function isAdmin(user) {
+  if (!user || !user.email) {
+    return false;
+  }
+  const adminEmails = getAdminEmails();
+  return adminEmails.includes(user.email.toLowerCase());
+}
+
 async function findOrCreateUser(profile) {
   const { id, displayName, emails } = profile;
   const email = emails[0].value;
@@ -23,4 +51,4 @@ async function findOrCreateUser(profile) {
   }
 }
 
-module.exports = { findOrCreateUser };
+module.exports = { findOrCreateUser, isAdmin, getAdminEmails };

@@ -94,6 +94,8 @@ async function scrapeTextage(targetLevel) {
             continue;
           }
 
+          const classification = version === 0 ? 'CS' : 'AC';
+
           const songKey = `${fullTitle}-${difficultyName}`;
           if (!uniqueSongsToInsert.has(songKey)) {
             uniqueSongsToInsert.set(songKey, {
@@ -103,6 +105,7 @@ async function scrapeTextage(targetLevel) {
               version,
               level,
               difficulty: difficultyName,
+              classification,
             });
           }
         }
@@ -120,8 +123,8 @@ async function scrapeTextage(targetLevel) {
       const songKey = `${song.title}-${song.difficulty}`;
       if (!existingSongs.has(songKey)) {
         await db.query(
-          'INSERT INTO songs (title, genre, artist, version, level, difficulty) VALUES ($1, $2, $3, $4, $5, $6)',
-          [song.title, song.genre, song.artist, song.version, song.level, song.difficulty]
+          'INSERT INTO songs (title, genre, artist, version, level, difficulty, classification) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+          [song.title, song.genre, song.artist, song.version, song.level, song.difficulty, song.classification]
         );
       }
     }
